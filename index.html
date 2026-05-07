@@ -1,232 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Pro</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <title>Verox Earning BD</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #0b0b0b; color: #fff; font-family: sans-serif; margin: 0; text-align: center; }
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .active { display: block; }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-
-        input, select { 
-            width: 85%; padding: 14px; margin: 10px 0; 
-            background: #1a1a1a; border: 1px solid #333; 
-            color: #fff; border-radius: 12px; outline: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        }
-
-        .btn { 
-            background: linear-gradient(135deg, #e91e63, #c2185b); 
-            color: #fff; border: none; padding: 14px; 
-            border-radius: 12px; cursor: pointer; font-weight: bold; 
-            width: 90%; transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(233, 30, 99, 0.3);
-        }
-
-        .game-container {
-            background: radial-gradient(circle, #1a1a1a, #000);
-            width: 90%; margin: 20px auto; height: 230px;
-            border-radius: 20px; position: relative; overflow: hidden;
-            border: 1px solid #222; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-        }
-
-        #plane { position: absolute; bottom: 20px; left: 20px; width: 45px; display: none; z-index: 5; }
-        .flying { display: block !important; animation: movePlane 10s infinite linear; }
-        @keyframes movePlane { 0% { transform: translate(0, 0); } 100% { transform: translate(280px, -160px); } }
-        
-        #multiplier { font-size: 50px; font-weight: bold; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
-        .crashed { color: #ff0000 !important; }
-
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #222; }
-        .nav-bar span { cursor: pointer; font-size: 14px; }
-        
-        .profile-card { background: #151515; padding: 20px; border-radius: 15px; margin: 10px; border: 1px solid #222; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        body { background: #000000; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        .auth-page, .main-app { padding: 20px; display: none; }
+        .header { background: #3b49ad; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; border-radius: 0 0 15px 15px; }
+        .balance-box { background: #0a0a0a; padding: 12px; border-radius: 12px; border: 1px solid #fbbf24; margin: 15px 0; text-align: center; }
+        .balance-box p { color: #94a3b8; font-size: 13px; margin: 0; }
+        .balance-box h1 { color: #fbbf24; font-size: 32px; margin: 2px 0; }
+        .card { background: #0a0a0a; padding: 15px; border-radius: 12px; border: 1px solid #1e293b; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 12px; margin-top: 8px; border-radius: 10px; border: 1px solid #334155; background: #1a1a1a; color: white; box-sizing: border-box; font-size: 14px; }
+        .btn { width: 100%; padding: 14px; background: #fbbf24; color: black; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 15px; }
+        .btn:disabled { background: #4b5563; }
+        .ad-slot { width: 100%; height: 200px; background: #1a1a1a; border-radius: 10px; margin: 10px 0; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px dashed #475569; }
+        #ad-frame { width: 100%; height: 100%; border: none; display: none; }
+        #whatsapp-float { position: fixed; bottom: 20px; right: 20px; z-index: 9999; touch-action: none; cursor: move; }
+        .logout-btn { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 15px; text-decoration: underline; cursor: pointer; display: block; }
     </style>
 </head>
 <body>
 
-    <div id="login-page" class="page active">
-        <h1 style="color:#e91e63; margin-bottom: 5px;">Aviator</h1>
-        <h3 style="margin-top: 0; opacity: 0.8;">Aviator Login</h3>
-        <input type="email" id="l-email" placeholder="Email Address">
-        <input type="password" id="l-pass" placeholder="Password">
-        <button class="btn" onclick="login()">LOGIN</button>
-        <p onclick="showPage('reg-page')" style="color:#007bff; cursor:pointer;">Create Account</p>
-    </div>
-
-    <div id="reg-page" class="page">
-        <h2>Register</h2>
-        <input type="email" id="r-email" placeholder="Email">
-        <input type="password" id="r-pass" placeholder="Password">
-        <input type="password" id="r-cpass" placeholder="Confirm Password">
-        <button class="btn" onclick="register()">REGISTER</button>
-        <p onclick="showPage('login-page')" style="cursor:pointer;">Login</p>
-    </div>
-
-    <div id="game-page" class="page">
-        <div style="display:flex; justify-content:space-between; padding: 5px 15px;">
-            <small id="u-id" style="opacity: 0.6;">ID: --</small>
-            <small style="color:#28a745; font-weight: bold;">Balance: <span id="u-bal">0.00</span></small>
-        </div>
-        <div class="game-container">
-            <div id="multiplier">1.00x</div>
-            <svg id="plane" viewBox="0 0 24 24" fill="#e91e63"><path d="M21,16L22,13L21,10L15,10L12,2L9,2L12,10L5,10L3,7L2,7L3,11L2,15L3,15L5,12L12,12L9,20L12,20L15,12L21,12L22,15L21,18V16Z" /></svg>
-        </div>
-        <div style="display:flex; justify-content:center; gap:10px; margin-bottom: 10px;">
-            <button class="btn" style="width:50px; background:#333;" onclick="changeBet(-10)">-</button>
-            <input type="number" id="bet-amount" value="10" readonly style="width:80px; margin:0;">
-            <button class="btn" style="width:50px; background:#333;" onclick="changeBet(10)">+</button>
-        </div>
-        <button class="btn" id="main-btn" style="background:#28a745;" onclick="handleAction()">BET</button>
-
-        <div class="nav-bar">
-            <span onclick="showPage('game-page')">🏠 Home</span>
-            <span onclick="showPage('profile-page')">👤 Profile</span>
+    <div id="authPage" class="auth-page" style="display:block;">
+        <h2 id="authTitle" style="text-align:center; color:#fbbf24;">লগইন করুন</h2>
+        <div class="card" style="border-color: #fbbf24;">
+            <input type="email" id="uEmail" placeholder="ইমেইল">
+            <input type="password" id="uPass" placeholder="পাসওয়ার্ড">
+            <input type="password" id="cPass" placeholder="কনফার্ম পাসওয়ার্ড" style="display:none;">
+            <button class="btn" id="authBtn" onclick="handleAuth()">Login Now</button>
+            <p id="toggleText" onclick="switchAuth()" style="color:#fbbf24; cursor:pointer; margin-top:15px; font-size:13px; text-align: center;">অ্যাকাউন্ট নেই? রেজিস্ট্রেশন করুন</p>
         </div>
     </div>
 
-    <div id="profile-page" class="page">
-        <h3>User Profile</h3>
-        <div class="profile-card">
-            <p>Email: <span id="p-email">--</span></p>
-            <p>Balance: <span id="p-bal" style="color:#28a745;">0.00</span> BDT</p>
+    <div id="mainApp" class="main-app">
+        <div class="header">Verox Earning BD</div>
+        <div class="balance-box">
+            <p>বর্তমান ব্যালেন্স</p>
+            <h1>৳ <span id="balance">0.00</span></h1>
         </div>
-        <button class="btn" style="background:#007bff; margin-bottom:10px;" onclick="showPage('deposit-page')">Deposit</button>
-        <button class="btn" style="background:#444" onclick="showPage('withdraw-page')">Withdraw</button>
-        
-        <div class="nav-bar">
-            <span onclick="showPage('game-page')">🏠 Home</span>
-            <span onclick="showPage('profile-page')">👤 Profile</span>
+        <div class="card">
+            <h2>ভিডিও টাস্ক</h2>
+            <div class="ad-slot"><p id="adStat" style="font-size: 12px; color: #475569;">us/uk vpn ব্যবহার করুন এবং এড দেখতে স্টার্ট এ ক্লিক করুন ! </p><iframe id="ad-frame"></iframe></div>
+            <button class="btn" id="taskBtn" onclick="startWork()">Start Work</button>
         </div>
+        <div class="card">
+            <h2>টাকা উত্তোলন</h2>
+            <input type="number" id="amt" placeholder="সর্বনিম্ন ৫০ ৳">
+            <input type="number" id="phone" placeholder="নম্বর">
+            <select id="method">
+                <option value="" disabled selected>Select</option>
+                <option id="opt1" value="Bikash">Bikash</option>
+                <option id="opt2" value="Nagad">Nagad</option>
+            </select>
+            <button class="btn" onclick="withdraw()">Withdraw Request</button>
+        </div>
+        <span class="logout-btn" onclick="firebase.auth().signOut()">Logout Account</span>
     </div>
 
-    <div id="deposit-page" class="page">
-        <h3>Select ↓</h3>
-        <select id="d-method"><option>Coming Soon</option><option>Bkash</option></select>
-        <p>Send Money :01331565448</p>
-        <input type="number" id="d-amount" placeholder="Amount">
-        <input type="text" id="d-trx" placeholder="TRX ID">
-        <button class="btn" onclick="sendDep()">Submit</button>
-        <p onclick="showPage('profile-page')" style="cursor:pointer;">Cancel</p>
-    </div>
-
-    <div id="withdraw-page" class="page">
-        <h3>Select ↓</h3>
-        <select id="w-method"><option>Nagod</option><option>Coming Soon</option></select>
-        <input type="number" id="w-amount" placeholder="Min Amount 320">
-        <input type="text" id="w-num" placeholder="Number">
-        <button class="btn" onclick="sendWit()">Send Request</button>
-        <p onclick="showPage('profile-page')" style="cursor:pointer;">Cancel</p>
-    </div>
+    <div id="whatsapp-float"><a href="https://wa.me/8801312048034" target="_blank" id="wa-link"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="55" draggable="false"></a></div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBuXapjIrkCVuONI4qXfSS0TVOZt_ZXxLE",
-            authDomain: "casino-7ceda.firebaseapp.com",
-            databaseURL: "https://casino-7ceda-default-rtdb.firebaseio.com",
-            projectId: "casino-7ceda",
-            storageBucket: "casino-7ceda.firebasestorage.app",
-            messagingSenderId: "307176424721",
-            appId: "1:307176424721:web:18dfeb258d105e62a0b8b0"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyA10jFMfbgMmsUIIquqBreP9ufDdLwOPX0", databaseURL: "https://veloxearn2-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const auth = firebase.auth(), db = firebase.database();
+        let curBal = 0, isDragging = false;
 
-        let user = null, isFlying = false, currentMult = 1.0, hasBet = false, myBetAmount = 0;
+        // পেমেন্ট মেথড লোড
+        db.ref('settings').on('value', s => {
+            const d = s.val() || {};
+            document.getElementById('opt1').innerText = d.m1 || "Bikash";
+            document.getElementById('opt1').value = d.m1 || "Bikash";
+            document.getElementById('opt2').innerText = d.m2 || "Nagad";
+            document.getElementById('opt2').value = d.m2 || "Nagad";
+        });
 
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            let targetPage = document.getElementById(id);
-            if(targetPage) targetPage.classList.add('active');
-            if(user) updateUI();
+        // WhatsApp Drag
+        const wa = document.getElementById('whatsapp-float');
+        wa.addEventListener('touchmove', (e) => { isDragging = true; let t = e.touches[0]; wa.style.left = (t.clientX-27)+'px'; wa.style.top = (t.clientY-27)+'px'; wa.style.right='auto'; wa.style.bottom='auto'; });
+        document.getElementById('wa-link').addEventListener('click', (e) => { if(isDragging) e.preventDefault(); isDragging=false; });
+
+        function checkVPN(uid) { let v = (Intl.DateTimeFormat().resolvedOptions().timeZone !== "Asia/Dhaka"); db.ref('users/'+uid).update({ vpn_status: v?"YES":"NO" }); }
+
+        let isLoginMode = true;
+        function switchAuth() { 
+            isLoginMode = !isLoginMode; 
+            document.getElementById('authTitle').innerText = isLoginMode ? "লগইন করুন" : "রেজিস্ট্রেশন করুন"; 
+            document.getElementById('authBtn').innerText = isLoginMode ? "Login Now" : "Register Now";
+            document.getElementById('cPass').style.display = isLoginMode ? "none" : "block"; 
         }
 
-        function changeBet(v) { 
-            let b = document.getElementById('bet-amount');
-            let n = parseInt(b.value) + v;
-            if(n >= 10) b.value = n;
+        function handleAuth() {
+            let e = document.getElementById('uEmail').value, p = document.getElementById('uPass').value;
+            if(isLoginMode) auth.signInWithEmailAndPassword(e,p).catch(a=>alert("ভুল তথ্য!"));
+            else auth.createUserWithEmailAndPassword(e,p).then(r=> db.ref('users/'+r.user.uid).set({email:e, balance:0, vpn_status:"NO"}));
         }
 
-        function register() {
-            let e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value, cp = document.getElementById('r-cpass').value;
-            if(!e || !p || p!==cp) return alert("Check Input!");
-            let k = e.replace(/\./g, '_');
-            db.ref('users/'+k).set({email:e, pass:p, balance:100, id:Math.floor(1000+Math.random()*9000)}).then(()=>{alert("Registration Done!"); showPage('login-page');});
-        }
+        auth.onAuthStateChanged(u => {
+            if(u){ document.getElementById('authPage').style.display='none'; document.getElementById('mainApp').style.display='block'; checkVPN(u.uid);
+                db.ref('users/'+u.uid+'/balance').on('value', s=>{ curBal=s.val()||0; document.getElementById('balance').innerText=curBal.toFixed(2); });
+            } else { document.getElementById('authPage').style.display='block'; document.getElementById('mainApp').style.display='none'; }
+        });
 
-        function login() {
-            let e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value, k = e.replace(/\./g, '_');
-            db.ref('users/'+k).once('value', s => {
-                if(s.exists() && s.val().pass === p) { user = s.val(); showPage('game-page'); startAviator(); } else alert("Error!");
-            });
-        }
-
-        function updateUI() {
-            document.getElementById('u-bal').innerText = user.balance.toFixed(2);
-            document.getElementById('p-bal').innerText = user.balance.toFixed(2);
-            document.getElementById('p-email').innerText = user.email;
-            document.getElementById('u-id').innerText = "ID: " + user.id;
-        }
-
-        function startAviator() {
-            let m = document.getElementById('multiplier'), p = document.getElementById('plane'), btn = document.getElementById('main-btn');
-            db.ref('game_settings/limit').once('value', s => {
-                let limit = s.val() ? parseFloat(s.val()) : (1.1 + Math.random() * 3).toFixed(2);
-                currentMult = 1.0; isFlying = true; m.classList.remove('crashed'); p.classList.add('flying');
-                if(hasBet) { btn.innerText = "CASH OUT"; btn.style.background = "#ffc107"; btn.style.color = "#000"; }
-
-                let t = setInterval(() => {
-                    if(currentMult < limit) {
-                        currentMult += 0.01; m.innerText = currentMult.toFixed(2) + "x";
-                        if(hasBet) btn.innerText = "CASH OUT ("+(myBetAmount*currentMult).toFixed(2)+")";
-                    } else {
-                        clearInterval(t); isFlying = false; m.innerText = "CRASHED " + currentMult.toFixed(2); m.classList.add('crashed'); p.classList.remove('flying');
-                        if(hasBet) { alert("Crashed!"); hasBet = false; }
-                        btn.innerText = "BET"; btn.style.background = "#28a745"; btn.style.color = "#fff";
-                        db.ref('game_settings/limit').set(null);
-                        setTimeout(startAviator, 6000);
+        function startWork() {
+            db.ref('settings').once('value').then(snap => {
+                const s = snap.val() || {};
+                let b = document.getElementById('taskBtn'), f = document.getElementById('ad-frame'), t = s.ad_time || 10;
+                b.disabled = true; f.src = s.ad_link || ""; f.style.display = "block"; document.getElementById('adStat').style.display = "none";
+                let timer = setInterval(() => { b.innerText = `Wait (${t}s)`; t--;
+                    if(t < 0){ clearInterval(timer); b.innerText = "Claim Reward"; b.disabled = false;
+                        b.onclick = () => {
+                            db.ref('users/'+auth.currentUser.uid+'/balance').transaction(x => (x||0) + (s.task_reward || 0.20));
+                            alert("৳ যোগ হয়েছে️"); f.style.display = "none"; document.getElementById('adStat').style.display = "block";
+                            b.innerText = "Start Work"; b.onclick = startWork;
+                        };
                     }
-                }, 100);
+                }, 1000);
             });
         }
 
-        function handleAction() {
-            let btn = document.getElementById('main-btn');
-            if(!isFlying && !hasBet) {
-                myBetAmount = parseFloat(document.getElementById('bet-amount').value);
-                if(myBetAmount > user.balance) return alert("Low Balance!");
-                user.balance -= myBetAmount; hasBet = true; updateUI();
-                btn.innerText = "WAITING..."; btn.style.background = "#444";
-            } else if(isFlying && hasBet) {
-                let win = myBetAmount * currentMult; user.balance += win;
-                db.ref('users/'+user.email.replace(/\./g, '_')).update({ balance: user.balance });
-                alert("Won: " + win.toFixed(2)); hasBet = false; updateUI();
-                btn.innerText = "BET"; btn.style.background = "#28a745";
-            }
-        }
-
-        function sendDep() { 
-            db.ref('deposits').push({email:user.email, amount:document.getElementById('d-amount').value, trx:document.getElementById('d-trx').value, method:document.getElementById('d-method').value}); 
-            // এখানে ডিপোজিট অ্যালার্ট পরিবর্তন করা হয়েছে (১৮৫ নাম্বার লাইনের আশেপাশে)
-            alert("Your deposit has been successful, the money will be added within a few moments"); 
-            showPage('profile-page'); 
-        }
-
-        function sendWit() {
-            let amt = parseFloat(document.getElementById('w-amount').value);
-            if(amt < 320) return alert("Min 320 BDT");
-            if(amt > user.balance) return alert("Low Balance!");
-            db.ref('withdraws').push({email:user.email, amt:amt, num:document.getElementById('w-num').value, method:document.getElementById('w-method').value});
-            user.balance -= amt;
-            db.ref('users/'+user.email.replace(/\./g, '_')).update({balance: user.balance});
-            // এখানে উইথড্র অ্যালার্ট পরিবর্তন করা হয়েছে (১৯৭ নাম্বার লাইনের আশেপাশে)
-            alert("Your withdraw has been successful, you will get payment within 5 hours"); 
-            showPage('profile-page');
+        function withdraw() {
+            let a = parseFloat(document.getElementById('amt').value), p = document.getElementById('phone').value, m = document.getElementById('method').value;
+            if(!m) return alert("পেমেন্ট মেথড সিলেক্ট করুন!");
+            if(a < 50 || a > curBal || !p) return alert("সঠিক তথ্য দিন এবং সর্বনিম্ন ৫০ টাকা সর্বোচ্চ ২০০ টাকা দিনে ২ বার উইথড্র দিতে পারবেন 💸");
+            db.ref('users/'+auth.currentUser.uid+'/balance').transaction(x=>x-a);
+            db.ref('withdraw_requests').push({ email: auth.currentUser.email, amount: a, phone: p, method: m });
+            alert("আপনার উইথড্র সফল হয়েছে ২৪ ঘন্টার মধ্যে পেমেন্ট পেয়ে যাবেন ✅");
         }
     </script>
 </body>
